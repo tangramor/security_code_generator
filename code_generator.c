@@ -13,6 +13,7 @@ char allowed_chars2[] = { '2', '3', '4', '5', '6', '7', '9', 'A', 'C', 'D', 'E',
 		'Z' };
 
 char *p_code(uuid_t u, int length);
+char *nodup_code(int total, int length, char *p[total][length]);
 void gencode(int total, int length, char *p[total][length]);
 
 size_t printed_length ( int x )
@@ -26,13 +27,13 @@ void main(int argc, char **argv) {
 	uuid_t u;
 
 	if(argc < 5 || argc > 6) {
-		printf("请输入唯一码长度(大于8)、需要生成的唯一码数量、起始流水号和名称，例如：\ncodegen 18 1000000 1010 Name\n\n或输入唯一码长度(大于8)、需要生成的唯一码数量、起始流水号、名称和页码，例如：\ncodegen 18 1000000 1010 Name Page\n\n");
+		printf("请输入唯一码长度(大于8)、需要生成的唯一码数量、起始流水号和名称:\nPlease input code length(bigger than 8), the total number of codes, start serial number and csv file name:\ncodegen 18 1000000 1010 Name\n\n或输入唯一码长度(大于8)、需要生成的唯一码数量、起始流水号、名称和页码:\nPlease input code length(bigger than 8), the total number of codes, start serial number, csv file name and the page number:\ncodegen 18 1000000 1010 Name Page\n\n");
 		exit(0);
 	}
 
 	int n = atoi(argv[1]);	//码长度
 	if(n < 8) {
-		printf("唯一码长度须大于8，例如：\ncodegen 18 1000000 1010 Name\n\n");
+		printf("唯一码长度须大于8，例如:\nThe code length must be bigger than 8, for example:\ncodegen 18 1000000 1010 Name\n\n");
 		exit(0);
 	}
 
@@ -56,13 +57,29 @@ void main(int argc, char **argv) {
   const char *middle = "s,%";
   const char *suffix = "d,%s\n";
   char fmt[255];
+  
+  /*
+  char *code_t[total][n];
+  gencode(total, n, code_t);
+  
+  int i;
+	for(i = 0; i < total; i ++) {
+		if(argc == 5) { // 不包含页码
+		  sprintf(fmt, "%s%d%s", prefix, t_len, suffix);  // 拼接成 %Nd,%s\n , N来自t_len的值，控制序列号所占位数
+		  fprintf(output, fmt, i + start, code_t[i]);
+		} else if(argc == 6) {  // 第一列为页码名称
+		  sprintf(fmt, "%s%s%d%s", prefix, middle, t_len, suffix);  // 拼接成 %s,%Nd,%s\n , N来自t_len的值，控制序列号所占位数
+		  fprintf(output, fmt, argv[5], i + start, code_t[i]);
+		}
+	}
+	*/
+
 
 	int i;
 	for(i = start; i < start + total; i ++) {
 		uuid_create(&u);
 		char *code = p_code(u, n);	//生成码
 
-//		printf("%7d,%s\n", i + 1, p[i]);
 		if(argc == 5) { // 不包含页码
 		  sprintf(fmt, "%s%d%s", prefix, t_len, suffix);  // 拼接成 %Nd,%s\n , N来自t_len的值，控制序列号所占位数
 		  fprintf(output, fmt, i, code);
@@ -71,33 +88,39 @@ void main(int argc, char **argv) {
 		  fprintf(output, fmt, argv[5], i, code);
 		}
 		free(code);
-
 	}
-
+	
 	fclose(output);
 }
 ;
 
 void gencode(int total, int length, char *p[total][length]) {
-	uuid_t u;
-
+	
 	int i;
 	for(i = 0; i < total; i ++) {
-		uuid_create(&u);
-		char *t = p_code(u, length);	//生成码
 
-		//查重
-		int j;
-		for(j = 0; j < i; j ++){
-			if(strcmp(t, p[j]) == 0) {
-				gencode(total, length, p);
-			}
-		}
+		char *t = nodup_code(i, length, p);
 
 		strcpy(p[i],t);
 
 		free(t);
 	}
+}
+;
+
+char *nodup_code(int total, int length, char *p[total][length]){
+	uuid_t u;
+	uuid_create(&u);
+	char *t = p_code(u, length);	//生成码
+
+	//查重	//check if there are duplicated codes
+	int j;
+	for(j = 0; j < total; j ++){
+		if(total > 0 && strcmp(t, p[j]) == 0) {
+			nodup_code(total, length, p);
+		}
+	}
+	return t;
 }
 ;
 
@@ -123,7 +146,7 @@ char *p_code(uuid_t u, int length) {
 	//检查是否有不符合字符相邻组合的情况
 	for (i = 0; i < sizeof(str); i++) {
 		str[i] = toupper(str[i]);
-		// 不允许0、1、I、O出现
+		// 不允许0、1、I、O出现	// don't allow 0, 1, I O appear in the code
 		if (str[i] == '0')
 			str[i] = allowed_chars[random_index(0, allowed_chars_max_idx)]; //'F';
 		if (str[i] == '1')
@@ -133,7 +156,7 @@ char *p_code(uuid_t u, int length) {
 		if (str[i] == 'O')
 			str[i] = allowed_chars[random_index(0, allowed_chars_max_idx)]; //'K';
 		if (i > 0) {
-			// 不允许N、M相邻出现或重复出现
+			// 不允许N、M相邻出现或重复出现	// don't allow N and M appear side by side like NN, MM, NM, MN...
 			if (str[i] == 'M' && str[i - 1] == 'M')
 				str[i] =
 						allowed_chars2[random_index(0, allowed_chars2_max_idx)]; //'P';
@@ -146,7 +169,7 @@ char *p_code(uuid_t u, int length) {
 			if (str[i] == 'N' && str[i - 1] == 'N')
 				str[i] =
 						allowed_chars2[random_index(0, allowed_chars2_max_idx)]; //'S';
-			// 不允许V、W相邻出现或重复出现
+			// 不允许V、W相邻出现或重复出现	// don't allow V and W appear side by side like WW, VV, VW, WV...
 			if (str[i] == 'V' && str[i - 1] == 'V')
 				str[i] =
 						allowed_chars2[random_index(0, allowed_chars2_max_idx)]; //'X';
@@ -159,7 +182,7 @@ char *p_code(uuid_t u, int length) {
 			if (str[i] == 'W' && str[i - 1] == 'W')
 				str[i] =
 						allowed_chars2[random_index(0, allowed_chars2_max_idx)]; //'A';
-			// 不允许8、B相邻出现或重复出现
+			// 不允许8、B相邻出现或重复出现 // don't allow 8 and B appear side by side like 8B, 88, BB, B8...
 			if (str[i] == '8' && str[i - 1] == 'B')
 				str[i] =
 						allowed_chars2[random_index(0, allowed_chars2_max_idx)]; //'C';
