@@ -16,9 +16,8 @@ char *p_code(uuid_t u, int length);
 char *nodup_code(int total, int length, char *p[total][length]);
 void gencode(int total, int length, char *p[total][length]);
 
-size_t printed_length ( int x )
-{
-    return snprintf ( NULL, 0, "%d", x );
+size_t printed_length(int x) {
+	return snprintf(NULL, 0, "%d", x);
 }
 ;
 
@@ -26,14 +25,16 @@ size_t printed_length ( int x )
 void main(int argc, char **argv) {
 	uuid_t u;
 
-	if(argc < 5 || argc > 6) {
-		printf("请输入唯一码长度(大于8)、需要生成的唯一码数量、起始流水号和名称:\nPlease input code length(bigger than 8), the total number of codes, start serial number and csv file name:\ncodegen 18 1000000 1010 Name\n\n或输入唯一码长度(大于8)、需要生成的唯一码数量、起始流水号、名称和页码:\nPlease input code length(bigger than 8), the total number of codes, start serial number, csv file name and the page number:\ncodegen 18 1000000 1010 Name Page\n\n");
+	if (argc < 5 || argc > 6) {
+		printf(
+				"请输入唯一码长度(大于8)、需要生成的唯一码数量、起始流水号和名称:\nPlease input code length(bigger than 8), the total number of codes, start serial number and csv file name:\ncodegen 18 1000000 1010 Name\n\n或输入唯一码长度(大于8)、需要生成的唯一码数量、起始流水号、名称和页码:\nPlease input code length(bigger than 8), the total number of codes, start serial number, csv file name and the page number:\ncodegen 18 1000000 1010 Name Page\n\n");
 		exit(0);
 	}
 
 	int n = atoi(argv[1]);	//码长度
-	if(n < 8) {
-		printf("唯一码长度须大于8，例如:\nThe code length must be bigger than 8, for example:\ncodegen 18 1000000 1010 Name\n\n");
+	if (n < 8) {
+		printf(
+				"唯一码长度须大于8，例如:\nThe code length must be bigger than 8, for example:\ncodegen 18 1000000 1010 Name\n\n");
 		exit(0);
 	}
 
@@ -41,82 +42,81 @@ void main(int argc, char **argv) {
 	int start = atoi(argv[3]);	//起始流水号
 	int last = start + total;
 	int t_len = printed_length(last);  //码数量最大位数
-	
+
 	//文件名
 	char fname[sizeof(argv[4])];
 	strcpy(fname, argv[4]);
 
 	FILE *output = fopen(strcat(fname, ".csv"), "w+");
-	if(output == NULL) {
+	if (output == NULL) {
 		printf("无法创建文件%s", fname);
 		exit(0);
 	}
 
-  //用来生成格式化串的字符串
-  const char *prefix = "%";
-  const char *middle = "s,%";
-  const char *suffix = "d,%s\n";
-  char fmt[255];
-  
-  /*
-  char *code_t[total][n];
-  gencode(total, n, code_t);
-  
-  int i;
-	for(i = 0; i < total; i ++) {
-		if(argc == 5) { // 不包含页码
-		  sprintf(fmt, "%s%d%s", prefix, t_len, suffix);  // 拼接成 %Nd,%s\n , N来自t_len的值，控制序列号所占位数
-		  fprintf(output, fmt, i + start, code_t[i]);
-		} else if(argc == 6) {  // 第一列为页码名称
-		  sprintf(fmt, "%s%s%d%s", prefix, middle, t_len, suffix);  // 拼接成 %s,%Nd,%s\n , N来自t_len的值，控制序列号所占位数
-		  fprintf(output, fmt, argv[5], i + start, code_t[i]);
-		}
-	}
-	*/
+	//用来生成格式化串的字符串
+	const char *prefix = "%";
+	const char *middle = "s,%";
+	const char *suffix = "d,%s\n";
+	char fmt[255];
 
+	/*
+	 char *code_t[total][n];
+	 gencode(total, n, code_t);
+
+	 int i;
+	 for(i = 0; i < total; i ++) {
+	 if(argc == 5) { // 不包含页码
+	 sprintf(fmt, "%s%d%s", prefix, t_len, suffix);  // 拼接成 %Nd,%s\n , N来自t_len的值，控制序列号所占位数
+	 fprintf(output, fmt, i + start, code_t[i]);
+	 } else if(argc == 6) {  // 第一列为页码名称
+	 sprintf(fmt, "%s%s%d%s", prefix, middle, t_len, suffix);  // 拼接成 %s,%Nd,%s\n , N来自t_len的值，控制序列号所占位数
+	 fprintf(output, fmt, argv[5], i + start, code_t[i]);
+	 }
+	 }
+	 */
 
 	int i;
-	for(i = start; i < start + total; i ++) {
+	for (i = start; i < start + total; i++) {
 		uuid_create(&u);
 		char *code = p_code(u, n);	//生成码
 
-		if(argc == 5) { // 不包含页码
-		  sprintf(fmt, "%s%d%s", prefix, t_len, suffix);  // 拼接成 %Nd,%s\n , N来自t_len的值，控制序列号所占位数
-		  fprintf(output, fmt, i, code);
-		} else if(argc == 6) {  // 第一列为页码名称
-		  sprintf(fmt, "%s%s%d%s", prefix, middle, t_len, suffix);  // 拼接成 %s,%Nd,%s\n , N来自t_len的值，控制序列号所占位数
-		  fprintf(output, fmt, argv[5], i, code);
+		if (argc == 5) { // 不包含页码
+			sprintf(fmt, "%s%d%s", prefix, t_len, suffix); // 拼接成 %Nd,%s\n , N来自t_len的值，控制序列号所占位数
+			fprintf(output, fmt, i, code);
+		} else if (argc == 6) {  // 第一列为页码名称
+			sprintf(fmt, "%s%s%d%s", prefix, middle, t_len, suffix); // 拼接成 %s,%Nd,%s\n , N来自t_len的值，控制序列号所占位数
+			fprintf(output, fmt, argv[5], i, code);
 		}
 		free(code);
 	}
-	
+
 	fclose(output);
 }
 ;
 
 void gencode(int total, int length, char *p[total][length]) {
-	
+
 	int i;
-	for(i = 0; i < total; i ++) {
+	for (i = 0; i < total; i++) {
 
 		char *t = nodup_code(i, length, p);
 
-		strcpy(p[i],t);
+		strcpy(p[i], t);
 
 		free(t);
 	}
 }
 ;
 
-char *nodup_code(int total, int length, char *p[total][length]){
+char *nodup_code(int total, int length, char *p[total][length]) {
 	uuid_t u;
 	uuid_create(&u);
 	char *t = p_code(u, length);	//生成码
 
 	//查重	//check if there are duplicated codes
 	int j;
-	for(j = 0; j < total; j ++){
-		if(total > 0 && strcmp(t, p[j]) == 0) {
+	for (j = 0; j < total; j++) {
+		if (total > 0 && strcmp(t, p[j]) == 0) {
 			nodup_code(total, length, p);
 		}
 	}
@@ -137,8 +137,8 @@ char *p_code(uuid_t u, int length) {
 	int allowed_chars2_max_idx = sizeof(allowed_chars2) - 1;
 
 	//8位数以后每位均取随机值
-	if(length > 8) {
-		for (i = 8; i < length; i ++) {
+	if (length > 8) {
+		for (i = 8; i < length; i++) {
 			str[i] = allowed_chars[random_index(0, allowed_chars_max_idx)];
 		}
 	}
