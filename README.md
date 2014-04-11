@@ -14,12 +14,13 @@ Execute the `codegen` program directly, it will promote you the usage informatio
 
 ```
 ./codegen
-请输入唯一码长度(大于8)、需要生成的唯一码数量、起始流水号和名称，例如：
+请输入唯一码长度(大于8)、需要生成的唯一码数量、起始流水号和名称:
+Please input code length(bigger than 8), the total number of codes, start serial number and csv file name:
 codegen 18 1000000 1010 Name
 
-或输入唯一码长度(大于8)、需要生成的唯一码数量、起始流水号、名称和页码，例如：
+或输入唯一码长度(大于8)、需要生成的唯一码数量、起始流水号、名称和页码:
+Please input code length(bigger than 8), the total number of codes, start serial number, csv file name and the page number:
 codegen 18 1000000 1010 Name Page
-
 
 ```
 
