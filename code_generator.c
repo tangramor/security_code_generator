@@ -37,7 +37,7 @@ printf(argv[5]);
 
 	int n = atoi(argv[1]);	//码长度
 	if (n < 8) {
-		printf("唯一码长度须大于8，例如:\nThe code length must be bigger than 8, for example:\ncodegen 18 1000000 1010 Name\n\n");
+		printf("唯一码长度须大于8，例如:\nThe code length must be bigger than 8, for example:\ncodegen 18 1000000 1010 N Name\n\n");
 		exit(0);
 	}
 
